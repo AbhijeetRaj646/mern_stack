@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Frontend (React) service
+  frontend:
+    build:
+      context: ./frontend
+    container_name: mern-frontend
+    restart: always
+    ports:
+      - "80:3000"  # Only expose frontend to the host
+    environment:
+      - REACT_APP_BACKEND_URL=/api/tasks  # Use internal service name
+    depends_on:
+      - backend
+    networks:
+      - mern-net
+
+  # Backend (Node.js/Express) service
+  backend:
+    build:
+      context: ./backend
+    container_name: mern-backend
+    restart: always
+    # No ports exposed to host — stays internal
+    environment:
+      - MONGO_CONN_STR=mongodb://mongo:27017/admin
+      - USE_DB_AUTH=false
+    depends_on:
+      - mongo
+    networks:
+      - mern-net
+
+  # MongoDB service
+  mongo:
+    image: mongo:latest
+    container_name: mern-mongo
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    # No ports exposed to host — stays internal
+    networks:
+      - mern-net
+
+volumes:
+  mongo-data:
+
+networks:
+  mern-net:
